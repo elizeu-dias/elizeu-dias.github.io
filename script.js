@@ -39,40 +39,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Formulário de contato com validação
-const form = document.getElementById('contact-form');
-if (form) {
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        let isValid = true;
-        const inputs = form.querySelectorAll('input, select, textarea');
-        
-        inputs.forEach(input => {
-            if (!input.value.trim()) {
-                isValid = false;
-                input.classList.add('error');
-            } else {
-                input.classList.remove('error');
-            }
-        });
-        
-        if (isValid) {
-            const submitButton = form.querySelector('button[type="submit"]');
-            const originalText = submitButton.textContent;
-            
-            submitButton.disabled = true;
-            submitButton.textContent = 'Enviando...';
-            
-            setTimeout(() => {
-                alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
-                form.reset();
-                submitButton.disabled = false;
-                submitButton.textContent = originalText;
-            }, 1500);
-        }
-    });
-}
 
 // Header scroll
 const header = document.querySelector('header');
@@ -110,6 +76,61 @@ window.onbeforeunload = function () {
 };
 
 // Também garante que a página comece no topo após o carregamento
-window.onload = function() {
+window.onload = function () {
     window.scrollTo(0, 0);
 };
+
+
+
+document.getElementById('contact-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = document.getElementById('contact-form');
+    let isValid = true;
+    const inputs = form.querySelectorAll('input, select, textarea');
+
+    inputs.forEach(input => {
+        if (!input.value.trim()) {
+            isValid = false;
+            input.classList.add('error');
+        } else {
+            input.classList.remove('error');
+        }
+    });
+
+    if (isValid) {
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Enviando...';
+        const formData = {
+            nome: document.querySelector('input[placeholder="Nome"]').value,
+            email: document.querySelector('input[placeholder="E-mail"]').value,
+            telefone: document.querySelector('input[placeholder="Telefone"]').value,
+            segmento: document.querySelector('select').value,
+            mensagem: document.querySelector('textarea').value
+        };
+
+        try {
+            const response = await fetch('https://extratosfacil.com.br:7443/robots/send-form', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                console.log(response)
+                form.reset();
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+                alert('Mensagem enviada com sucesso!');
+                window.location.reload();
+            } else {
+                alert('Erro ao enviar a mensagem.');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao enviar a mensagem.');
+        }
+    }
+});
